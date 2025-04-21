@@ -3,39 +3,25 @@ from discord.ext import commands
 from discord import app_commands
 import os
 from dotenv import load_dotenv
-from keep_alive import keep_alive # ⬅️ Webserver starten (für Replit wichtig)
+from keep_alive import keep_alive
 
-# Keep-Alive-Webserver starten
+# Webserver für Uptime starten
 keep_alive()
 
 # .env laden
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-CHANNEL_ID = os.getenv("CHANNEL_ID")
+CHANNEL_ID = int(os.getenv("CHANNEL_ID")) # Zahlungs-Channel
+TICKET_CHANNEL_ID = 1325498324731564154 # Ticket-Channel
 
-# Logging für Kontrolle
-print("🔐 DISCORD_TOKEN geladen:", bool(DISCORD_TOKEN))
-print("📺 CHANNEL_ID geladen:", CHANNEL_ID)
-
-# Fehlerprüfung
-if not DISCORD_TOKEN or not CHANNEL_ID:
-    raise ValueError("❌ DISCORD_TOKEN oder CHANNEL_ID fehlt. Bitte .env-Datei prüfen!")
-
-# Channel-ID casten
-CHANNEL_ID = int(CHANNEL_ID)
-
-# Bot-Setup
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Ticket-Channel für Support
-TICKET_CHANNEL_ID = 1325498324731564154
-
-# View für Buttons (dauerhaft aktiv)
+# View mit timeout=None
 class ZahlungsmethodenButtons(discord.ui.View):
     def __init__(self):
-        super().__init__(timeout=None) # View bleibt dauerhaft aktiv
+        super().__init__(timeout=None)
 
     @discord.ui.button(label="💳 Mit PayPal (Eneba) kaufen", style=discord.ButtonStyle.primary, custom_id="paypal_button_unique")
     async def paypal_button(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -75,36 +61,32 @@ class ZahlungsmethodenButtons(discord.ui.View):
             ephemeral=True
         )
 
-# Event beim Start des Bots
 @bot.event
 async def on_ready():
-    bot.add_view(ZahlungsmethodenButtons()) # View persistieren
-    print(f"✅ {bot.user.name} ist online und bereit für Zahlungen.")
+    bot.add_view(ZahlungsmethodenButtons())
+    print(f"✅ {bot.user.name} ist online.")
 
-# Befehl: !zahlung
-@bot.command()
-async def zahlung(ctx):
-    if ctx.channel.id != CHANNEL_ID:
-        return await ctx.send("❌ Dieser Befehl darf nur im vorgesehenen Zahlungs-Channel verwendet werden.")
-
-    embed = discord.Embed(
-        title="🧾 Zahlungsmöglichkeiten",
-        description=(
-            "Hier kannst du Guthaben kaufen, um im Shop zu bezahlen.\n\n"
-            "**🔹 Eneba (PayPal, Kreditkarte):**\n"
-            "Wähle diese Option, um deine Zahlung per PayPal oder Kreditkarte abzuschließen.\n\n"
-            "**🔹 Kryptowährungen:**\n"
-            "Zahle sicher und schnell mit Kryptowährungen wie TRX und LTC.\n\n"
-            "**❗ Hinweise:**\n"
-            "• Nutze Rewarble Visa Karten bei PayPal-Zahlungen\n"
-            "• Bei Krypto bitte Screenshot senden\n"
-            "• Ticket nach Zahlung über den Button erstellen"
-        ),
-        color=discord.Color.blurple()
-    )
-
-    view = ZahlungsmethodenButtons()
-    await ctx.send(embed=embed, view=view)
+    # Automatisch Nachricht im Channel senden
+    channel = bot.get_channel(CHANNEL_ID)
+    if channel:
+        embed = discord.Embed(
+            title="🧾 Zahlungsmöglichkeiten",
+            description=(
+                "Hier kannst du Guthaben kaufen, um im Shop zu bezahlen.\n\n"
+                "**🔹 Eneba (PayPal, Kreditkarte):**\n"
+                "Wähle diese Option, um deine Zahlung per PayPal oder Kreditkarte abzuschließen.\n\n"
+                "**🔹 Kryptowährungen:**\n"
+                "Zahle sicher und schnell mit Kryptowährungen wie TRX und LTC.\n\n"
+                "**❗ Hinweise:**\n"
+                "• Nutze Rewarble Visa Karten bei PayPal-Zahlungen\n"
+                "• Bei Krypto bitte Screenshot senden\n"
+                "• Ticket nach Zahlung über den Button erstellen"
+            ),
+            color=discord.Color.blurple()
+        )
+        await channel.send(embed=embed, view=ZahlungsmethodenButtons())
+    else:
+        print("❌ Fehler: Zahlungs-Channel wurde nicht gefunden.")
 
 # Bot starten
 bot.run(DISCORD_TOKEN)
