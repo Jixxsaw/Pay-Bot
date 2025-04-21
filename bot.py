@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 import os
 from dotenv import load_dotenv
-from keep_alive import keep_alive  # ⬅️ Webserver starten (für Replit wichtig)
+from keep_alive import keep_alive # ⬅️ Webserver starten (für Replit wichtig)
 
 # Keep-Alive-Webserver starten
 keep_alive()
@@ -32,10 +32,10 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # Ticket-Channel für Support
 TICKET_CHANNEL_ID = 1325498324731564154
 
-# View für Buttons
+# View für Buttons (dauerhaft aktiv)
 class ZahlungsmethodenButtons(discord.ui.View):
     def __init__(self):
-        super().__init__()
+        super().__init__(timeout=None) # View bleibt dauerhaft aktiv
 
     @discord.ui.button(label="💳 Mit PayPal (Eneba) kaufen", style=discord.ButtonStyle.primary, custom_id="paypal_button_unique")
     async def paypal_button(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -75,10 +75,13 @@ class ZahlungsmethodenButtons(discord.ui.View):
             ephemeral=True
         )
 
+# Event beim Start des Bots
 @bot.event
 async def on_ready():
+    bot.add_view(ZahlungsmethodenButtons()) # View persistieren
     print(f"✅ {bot.user.name} ist online und bereit für Zahlungen.")
 
+# Befehl: !zahlung
 @bot.command()
 async def zahlung(ctx):
     if ctx.channel.id != CHANNEL_ID:
