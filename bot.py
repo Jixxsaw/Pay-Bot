@@ -11,8 +11,8 @@ keep_alive()
 # .env laden
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-CHANNEL_ID = int(os.getenv("CHANNEL_ID")) # Zahlungs-Channel
-TICKET_CHANNEL_ID = 1325498324731564154 # Ticket-Channel
+CHANNEL_ID = int(os.getenv("CHANNEL_ID"))  # Zahlungs-Channel
+TICKET_CHANNEL_ID = 1325498324731564154    # Ticket-Channel
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -55,9 +55,36 @@ class ZahlungsmethodenButtons(discord.ui.View):
     @discord.ui.button(label="✅ Zahlung abgeschlossen", style=discord.ButtonStyle.success, custom_id="zahlung_abgeschlossen_unique")
     async def done_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         ticket_channel = interaction.guild.get_channel(TICKET_CHANNEL_ID)
+
+        if ticket_channel is None:
+            await interaction.response.send_message(
+                "❌ Fehler: Ticket-Channel wurde nicht gefunden. Bitte kontaktiere einen Admin.",
+                ephemeral=True
+            )
+            return
+
+        # Prüfe Schreibrechte
+        permissions = ticket_channel.permissions_for(interaction.guild.me)
+        if not permissions.send_messages:
+            await interaction.response.send_message(
+                f"⚠️ Ich habe keine Berechtigung, im Ticket-Channel {ticket_channel.mention} zu schreiben.\n"
+                "Bitte kontaktiere einen Admin oder überprüfe die Channel-Berechtigungen.",
+                ephemeral=True
+            )
+            return
+
         await interaction.response.send_message(
             f"✅ Bitte öffne ein Ticket im Channel {ticket_channel.mention}, um deine Zahlung abzuschließen.\n"
             "Klicke dort auf **„Buy“**, um dein Ticket zu erstellen.",
+            ephemeral=True
+        )
+
+    @discord.ui.button(label="🧾 Mit PaySafeCard kaufen", style=discord.ButtonStyle.secondary, custom_id="paysafecard_button_unique")
+    async def paysafecard_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message(
+            "**Mit PaySafeCard bezahlen:**\n\n"
+            "Du kannst eine PaySafeCard ganz einfach an Tankstellen, Kiosken oder Supermärkten kaufen.\n\n"
+            "➡️ [Hier findest du Verkaufsstellen in deiner Nähe](https://www.paysafecard.com/de-de/kaufen/verkaufsstellensuche/)",
             ephemeral=True
         )
 
@@ -77,6 +104,8 @@ async def on_ready():
                 "Wähle diese Option, um deine Zahlung per PayPal oder Kreditkarte abzuschließen.\n\n"
                 "**🔹 Kryptowährungen:**\n"
                 "Zahle sicher und schnell mit Kryptowährungen wie TRX und LTC.\n\n"
+                "**🔹 PaySafeCard:**\n"
+                "Kaufe deine PSC an Tankstellen, im Supermarkt oder online.\n\n"
                 "**❗ Hinweise:**\n"
                 "• Nutze Rewarble Visa Karten bei PayPal-Zahlungen\n"
                 "• Bei Krypto bitte Screenshot senden\n"
@@ -90,3 +119,4 @@ async def on_ready():
 
 # Bot starten
 bot.run(DISCORD_TOKEN)
+
