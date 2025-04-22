@@ -52,6 +52,15 @@ class ZahlungsmethodenButtons(discord.ui.View):
             ephemeral=True
         )
 
+    @discord.ui.button(label="🧾 Mit PaySafeCard kaufen", style=discord.ButtonStyle.primary, custom_id="paysafecard_button_unique")
+    async def paysafecard_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message(
+            "**Mit PaySafeCard bezahlen:**\n\n"
+            "➡️ [Paysafecard bei Dundle kaufen](https://dundle.com/de/paysafecard/)\n"
+            "➡️ [Paysafecard bei Guthaben.de kaufen](https://www.guthaben.de/paysafecard)",
+            ephemeral=True
+        )
+
     @discord.ui.button(label="✅ Zahlung abgeschlossen", style=discord.ButtonStyle.success, custom_id="zahlung_abgeschlossen_unique")
     async def done_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         ticket_channel = interaction.guild.get_channel(TICKET_CHANNEL_ID)
@@ -76,15 +85,6 @@ class ZahlungsmethodenButtons(discord.ui.View):
         await interaction.response.send_message(
             f"✅ Bitte öffne ein Ticket im Channel {ticket_channel.mention}, um deine Zahlung abzuschließen.\n"
             "Klicke dort auf **„Buy“**, um dein Ticket zu erstellen.",
-            ephemeral=True
-        )
-
-    @discord.ui.button(label="🧾 Mit PaySafeCard kaufen", style=discord.ButtonStyle.secondary, custom_id="paysafecard_button_unique")
-    async def paysafecard_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message(
-            "**Mit PaySafeCard bezahlen:**\n\n"
-            "Du kannst eine PaySafeCard ganz einfach an Tankstellen, Kiosken oder Supermärkten kaufen.\n\n"
-            "➡️ [Hier findest du Verkaufsstellen in deiner Nähe](https://www.paysafecard.com/de-de/kaufen/verkaufsstellensuche/)",
             ephemeral=True
         )
 
@@ -119,4 +119,3 @@ async def on_ready():
 
 # Bot starten
 bot.run(DISCORD_TOKEN)
-
